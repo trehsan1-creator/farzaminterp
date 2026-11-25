@@ -2,50 +2,59 @@
 
 .fz-sidebar-brand {
   display: flex;
-  min-height: 88px;
+  min-height: 92px;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 14px 13px;
+  gap: 7px;
+  padding: 14px 14px 12px;
 }
 .fz-sidebar-brand-lockup {
   display: flex;
-  min-height: 56px;
-  width: 100%;
+  width: auto;
+  min-height: 48px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 11px;
-  padding: 8px 12px;
-  border: 1px solid rgb(16 35 51 / .08);
-  border-radius: 12px;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.fz-brand-symbol-frame {
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  inline-size: 42px;
+  block-size: 42px;
+  border-radius: 11px;
   background: #fff;
-  box-shadow: 0 2px 8px rgb(0 0 0 / .06);
 }
 .fz-sidebar-brand img.fz-brand-symbol {
   display: block;
-  flex: 0 0 36px;
-  inline-size: 36px;
-  block-size: 36px;
-  width: 36px;
-  height: 36px;
+  inline-size: 29px;
+  block-size: 29px;
+  width: 29px;
+  height: 29px;
   object-fit: contain;
 }
 .fz-sidebar-brand img.fz-brand-wordmark {
   display: block;
-  flex: 0 1 116px;
-  inline-size: 116px;
+  flex: 0 1 128px;
+  inline-size: 128px;
   block-size: auto;
-  width: 116px;
+  width: 128px;
   height: auto;
-  max-width: calc(100% - 47px);
+  max-width: calc(100% - 54px);
   aspect-ratio: 497.03 / 166.91;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 .fz-sidebar-brand .fz-brand-caption {
   display: block;
-  color: rgb(255 255 255 / .66);
+  color: rgb(255 255 255 / .58);
   font-size: 10px;
   line-height: 1.4;
   text-align: center;
@@ -350,28 +359,31 @@
 
 @media (max-width: 767px) {
   .fz-sidebar-brand {
-    min-height: 78px;
-    padding: 12px 12px 10px;
+    min-height: 82px;
+    padding: 11px 12px 9px;
   }
   .fz-sidebar-brand-lockup {
-    min-height: 52px;
-    gap: 9px;
-    padding: 7px 10px;
+    min-height: 44px;
+    gap: 10px;
+  }
+  .fz-brand-symbol-frame {
+    flex-basis: 38px;
+    inline-size: 38px;
+    block-size: 38px;
   }
   .fz-sidebar-brand img.fz-brand-symbol {
-    flex-basis: 32px;
-    inline-size: 32px;
-    block-size: 32px;
-    width: 32px;
-    height: 32px;
+    inline-size: 26px;
+    block-size: 26px;
+    width: 26px;
+    height: 26px;
   }
   .fz-sidebar-brand img.fz-brand-wordmark {
-    flex-basis: 108px;
-    inline-size: 108px;
-    width: 108px;
-    max-width: calc(100% - 41px);
+    flex-basis: 116px;
+    inline-size: 116px;
+    width: 116px;
+    max-width: calc(100% - 48px);
   }
-  .fz-analytics-heading {
+.fz-analytics-heading {
     align-items: flex-start;
     flex-direction: column;
     gap: 9px;
