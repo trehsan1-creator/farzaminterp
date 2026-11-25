@@ -484,7 +484,7 @@ export async function handleTaskAction(
     auditDetails = { channel: parsed.data.channel };
   }
 
-  const { data, error } = await (context.client as any).rpc(rpcName, rpcArgs);
+  const { data, error } = await context.client.rpc(rpcName, rpcArgs);
   if (error) {
     const response = rpcErrorResponse(error);
     await audit(context, "task." + action + ".failed", response.status, {

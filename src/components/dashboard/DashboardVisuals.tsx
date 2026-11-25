@@ -204,35 +204,38 @@ function MonthlyBars({ data }: { data: Array<{ month: string; value: number }> }
 
 function DocumentTypeDonut({ data }: { data: Array<{ type: string; label: string; value: number }> }) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
-  let offset = 0;
+  const segments = data.reduce<Array<{ item: (typeof data)[number]; share: number; offset: number }>>(
+    (acc, item) => {
+      const share = total > 0 ? (item.value / total) * 100 : 0;
+      const previous = acc[acc.length - 1];
+      const offset = previous ? previous.offset + previous.share : 0;
+      return [...acc, { item, share, offset }];
+    },
+    [],
+  );
 
   return (
     <div className="fz-donut-layout">
       <svg className="fz-donut-chart" viewBox="0 0 220 220" role="img" aria-label="نمودار حلقه‌ای ترکیب انواع اسناد">
         <circle cx="110" cy="110" r="76" fill="none" stroke="#EEF2F7" strokeWidth="23" />
         <g transform="rotate(-90 110 110)">
-          {data.map((item, index) => {
-            const share = (item.value / total) * 100;
-            const currentOffset = offset;
-            offset += share;
-            return (
-              <circle
-                key={item.type}
-                cx="110"
-                cy="110"
-                r="76"
-                fill="none"
-                stroke={DONUT_COLORS[index % DONUT_COLORS.length]}
-                strokeWidth="23"
-                strokeDasharray={String(share) + " " + String(100 - share)}
-                strokeDashoffset={-currentOffset}
-                strokeLinecap="butt"
-                pathLength="100"
-              >
-                <title>{item.label + ": " + item.value}</title>
-              </circle>
-            );
-          })}
+          {segments.map(({ item, share, offset }, index) => (
+            <circle
+              key={item.type}
+              cx="110"
+              cy="110"
+              r="76"
+              fill="none"
+              stroke={DONUT_COLORS[index % DONUT_COLORS.length]}
+              strokeWidth="23"
+              strokeDasharray={String(share) + " " + String(100 - share)}
+              strokeDashoffset={-offset}
+              strokeLinecap="butt"
+              pathLength="100"
+            >
+              <title>{item.label + ": " + item.value}</title>
+            </circle>
+          ))}
         </g>
         <text x="110" y="105" textAnchor="middle" className="fz-donut-total">{toFaDigits(String(total))}</text>
         <text x="110" y="128" textAnchor="middle" className="fz-donut-caption">سند</text>
