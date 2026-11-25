@@ -1513,3 +1513,47 @@ p { margin: 0; }
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+.fz-page-heading-copy {
+  min-width: 0;
+}
+.fz-empty-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 48px;
+  block-size: 48px;
+  margin-block-end: 2px;
+  border-radius: 13px;
+  background: #eef3ff;
+  color: var(--fz-brand-blue);
+}
+.fz-empty-title {
+  color: var(--fz-brand-navy);
+  font-size: 14px;
+}
+.fz-empty-text {
+  line-height: 1.9;
+}
+.fz-backdrop {
+  display: block;
+  cursor: pointer;
+}
+.fz-backdrop[hidden] {
+  display: none;
+}
+@media (max-width: 767px) {
+  .fz-empty {
+    min-height: 150px;
+  }
+  .fz-empty-icon {
+    inline-size: 42px;
+    block-size: 42px;
+  }
+  .fz-topbar-context {
+    flex: 1 1 auto;
+  }
+  .fz-topbar-spacer {
+    flex: 0 0 4px;
+  }
+}
