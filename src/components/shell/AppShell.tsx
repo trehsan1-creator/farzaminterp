@@ -113,19 +113,21 @@ export function AppShell({ company, fiscalYears, dbConfigured, children }: AppSh
       >
         <div className="fz-sidebar-brand">
           <div className="fz-sidebar-brand-lockup" aria-label="آتی فرزام">
-            <Image
-              src="/brand/af-logo.svg"
-              alt=""
-              width={36}
-              height={36}
-              className="fz-brand-symbol"
-              priority
-            />
+            <span className="fz-brand-symbol-frame">
+              <Image
+                src="/brand/af-logo.svg"
+                alt=""
+                width={42}
+                height={42}
+                className="fz-brand-symbol"
+                priority
+              />
+            </span>
             <Image
               src="/brand/wordmark-fa.svg"
               alt="آتی فرزام"
-              width={116}
-              height={39}
+              width={128}
+              height={43}
               className="fz-brand-wordmark"
               priority
             />
