@@ -19,11 +19,12 @@ export const taskTypeSchema = z.enum([
 export const taskListQuerySchema = z.object({
   status: taskStatusSchema.optional(),
   type: taskTypeSchema.optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
+  limit: z.coerce.number().int().min(1).max(500).default(50),
   cursor: z.coerce.number().int().min(0).default(0),
 });
 
 export const claimTaskBodySchema = z.object({
+  agent: z.string().min(1).max(64).optional(),
   lease_seconds: z.coerce.number().int().min(60).max(3600).optional(),
 });
 

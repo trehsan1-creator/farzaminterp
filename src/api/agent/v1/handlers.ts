@@ -35,8 +35,26 @@ function apiError(
   message: string,
   status: number,
   details?: Record<string, unknown>,
+  requestId?: string,
 ): NextResponse {
-  return NextResponse.json({ error: { code, message, ...(details ? { details } : {}) } }, { status });
+  const safeDetails = { ...(details ?? {}) };
+  const resolvedRequestId =
+    requestId ?? (typeof safeDetails.request_id === "string" ? safeDetails.request_id : randomUUID());
+  delete safeDetails.request_id;
+  return NextResponse.json({
+    error: { code, message, ...(Object.keys(safeDetails).length ? { details: safeDetails } : {}) },
+    request_id: resolvedRequestId,
+  }, { status });
+}
+
+function scopedError(
+  context: AgentContext,
+  code: string,
+  message: string,
+  status: number,
+  details?: Record<string, unknown>,
+): NextResponse {
+  return apiError(code, message, status, details, context.requestId);
 }
 
 async function prepare(
@@ -46,7 +64,7 @@ async function prepare(
   route: string,
 ): Promise<Prepared> {
   const requestId = randomUUID();
-  const authResult = requireAgentApiKey(request, scope);
+  const authResult = requireAgentApiKey(request, scope, requestId);
   if (!authResult.ok) {
     if (hasDatabaseConfig()) {
       await writeAgentAudit({
@@ -187,7 +205,7 @@ async function getTaskState(context: AgentContext, taskId: string) {
   return { data, error };
 }
 
-function rpcErrorResponse(error: { message?: string }): NextResponse {
+function rpcErrorResponse(error: { message?: string }, requestId: string): NextResponse {
   const message = error.message ?? "";
   const match = message.match(/(TASK_[A-Z_]+|IDEMPOTENCY_KEY_REQUIRED|AGENT_ID_REQUIRED|TASK_RESULT_INVALID|HUMAN_QUESTION_REQUIRED|INVALID_HUMAN_CHANNEL)/);
   const code = match?.[1] ?? "INTERNAL";
@@ -206,18 +224,19 @@ function rpcErrorResponse(error: { message?: string }): NextResponse {
     code === "HUMAN_QUESTION_REQUIRED" ? "A human question is required." :
     code === "INVALID_HUMAN_CHANNEL" ? "The human channel is invalid." :
     "The agent task operation failed.";
-  return apiError(code, publicMessage, status);
+  return apiError(code, publicMessage, status, undefined, requestId);
 }
 
 async function parseJson(
   request: Request,
+  requestId: string,
 ): Promise<{ ok: true; value: unknown } | { ok: false; response: NextResponse }> {
   const raw = await request.text();
   if (!raw.trim()) return { ok: true, value: {} };
   try {
     return { ok: true, value: JSON.parse(raw) as unknown };
   } catch {
-    return { ok: false, response: apiError("VALIDATION_FAILED", "Invalid JSON body.", 400) };
+    return { ok: false, response: apiError("VALIDATION_FAILED", "Invalid JSON body.", 400, undefined, requestId) };
   }
 }
 
@@ -238,7 +257,7 @@ export async function handleHealth(request: Request): Promise<NextResponse> {
     .eq("status", "open");
 
   if (companyError || queueError || !company) {
-    const response = apiError("DATABASE_UNAVAILABLE", "The database health check failed.", 503, { request_id: context.requestId });
+    const response = scopedError(context, "DATABASE_UNAVAILABLE", "The database health check failed.", 503);
     await audit(context, "health.failed", 503, { details: { database: false } });
     return response;
   }
@@ -268,7 +287,7 @@ export async function handleListTasks(request: Request): Promise<NextResponse> {
     cursor: url.searchParams.get("cursor") ?? undefined,
   });
   if (!parsed.success) {
-    const response = apiError("VALIDATION_FAILED", "Invalid task-list filters.", 400, { issues: parsed.error.issues });
+    const response = scopedError(context, "VALIDATION_FAILED", "Invalid task-list filters.", 400, { issues: parsed.error.issues });
     await audit(context, "tasks.list.invalid", 400);
     return response;
   }
@@ -288,7 +307,7 @@ export async function handleListTasks(request: Request): Promise<NextResponse> {
     .range(cursor, cursor + limit);
 
   if (error) {
-    const response = apiError("INTERNAL", "Could not read the task queue.", 500, { request_id: context.requestId });
+    const response = scopedError(context, "INTERNAL", "Could not read the task queue.", 500);
     await audit(context, "tasks.list.failed", 500, { details: { db_code: error.code } });
     return response;
   }
@@ -313,7 +332,7 @@ export async function handleListAudit(request: Request): Promise<NextResponse> {
   const rawLimit = new URL(request.url).searchParams.get("limit");
   const limit = rawLimit === null ? 100 : Number(rawLimit);
   if (!Number.isInteger(limit) || limit < 1 || limit > 200) {
-    const response = apiError("VALIDATION_FAILED", "limit must be an integer from 1 to 200.", 400);
+    const response = scopedError(context, "VALIDATION_FAILED", "limit must be an integer from 1 to 200.", 400);
     await audit(context, "audit.list.invalid", 400);
     return response;
   }
@@ -326,7 +345,7 @@ export async function handleListAudit(request: Request): Promise<NextResponse> {
     .limit(limit);
 
   if (error) {
-    const response = apiError("INTERNAL", "Could not read the agent audit log.", 500, { request_id: context.requestId });
+    const response = scopedError(context, "INTERNAL", "Could not read the agent audit log.", 500);
     await audit(context, "audit.list.failed", 500, { details: { db_code: error.code } });
     return response;
   }
@@ -350,13 +369,13 @@ export async function handleTaskAction(
 
   const parsedId = taskIdSchema.safeParse(rawTaskId);
   if (!parsedId.success) {
-    const response = apiError("VALIDATION_FAILED", "Task id must be a UUID.", 400);
+    const response = scopedError(context, "VALIDATION_FAILED", "Task id must be a UUID.", 400);
     await audit(context, "task." + action + ".invalid_id", 400);
     return response;
   }
   const taskId = parsedId.data;
 
-  const parsedBody = await parseJson(request);
+  const parsedBody = await parseJson(request, context.requestId);
   if (!parsedBody.ok) {
     await audit(context, "task." + action + ".invalid_json", 400, { targetId: taskId });
     return parsedBody.response;
@@ -364,12 +383,12 @@ export async function handleTaskAction(
 
   const { data: task, error: taskError } = await getTaskState(context, taskId);
   if (taskError) {
-    const response = apiError("INTERNAL", "Could not resolve task scope.", 500);
+    const response = scopedError(context, "INTERNAL", "Could not resolve task scope.", 500);
     await audit(context, "task." + action + ".scope_failed", 500, { targetId: taskId, details: { db_code: taskError.code } });
     return response;
   }
   if (!task) {
-    const response = apiError("TASK_NOT_FOUND", "Task was not found in the agent's company scope.", 404);
+    const response = scopedError(context, "TASK_NOT_FOUND", "Task was not found in the agent's company scope.", 404);
     await audit(context, "task." + action + ".not_found", 404, { targetId: taskId });
     return response;
   }
@@ -382,8 +401,13 @@ export async function handleTaskAction(
   if (action === "claim") {
     const parsed = claimTaskBodySchema.safeParse(parsedBody.value);
     if (!parsed.success) {
-      const response = apiError("VALIDATION_FAILED", "Invalid claim body.", 400, { issues: parsed.error.issues });
+      const response = scopedError(context, "VALIDATION_FAILED", "Invalid claim body.", 400, { issues: parsed.error.issues });
       await audit(context, "task.claim.invalid", 400, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
+      return response;
+    }
+    if (parsed.data.agent && parsed.data.agent !== context.auth.agentId) {
+      const response = scopedError(context, "AGENT_ID_MISMATCH", "The request agent does not match the authenticated key identity.", 403);
+      await audit(context, "task.claim.agent_mismatch", 403, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
       return response;
     }
     if (task.status === "in_progress" && task.claimed_by === context.auth.agentId &&
@@ -403,7 +427,7 @@ export async function handleTaskAction(
   } else if (action === "heartbeat") {
     const parsed = heartbeatTaskBodySchema.safeParse(parsedBody.value);
     if (!parsed.success) {
-      const response = apiError("VALIDATION_FAILED", "Invalid heartbeat body.", 400, { issues: parsed.error.issues });
+      const response = scopedError(context, "VALIDATION_FAILED", "Invalid heartbeat body.", 400, { issues: parsed.error.issues });
       await audit(context, "task.heartbeat.invalid", 400, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
       return response;
     }
@@ -416,18 +440,18 @@ export async function handleTaskAction(
   } else if (action === "release") {
     const parsed = releaseTaskBodySchema.safeParse(parsedBody.value);
     if (!parsed.success) {
-      const response = apiError("VALIDATION_FAILED", "Invalid release body.", 400, { issues: parsed.error.issues });
+      const response = scopedError(context, "VALIDATION_FAILED", "Invalid release body.", 400, { issues: parsed.error.issues });
       await audit(context, "task.release.invalid", 400, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
       return response;
     }
     rpcName = "fz_agent_release_task";
     rpcArgs = { p_task_id: taskId, p_agent: context.auth.agentId };
-    auditDetails = { reason_length: parsed.data.reason.length };
+    auditDetails = { reason: parsed.data.reason };
   } else if (action === "complete") {
     const parsed = completeTaskBodySchema.safeParse(parsedBody.value);
     const parsedKey = idempotencyKeySchema.safeParse(key);
     if (!parsed.success || !parsedKey.success) {
-      const response = apiError("VALIDATION_FAILED", "A valid body and Idempotency-Key header are required.", 400, {
+      const response = scopedError(context, "VALIDATION_FAILED", "A valid body and Idempotency-Key header are required.", 400, {
         issues: parsed.success ? [] : parsed.error.issues,
       });
       await audit(context, "task.complete.invalid", 400, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
@@ -466,7 +490,7 @@ export async function handleTaskAction(
     const parsed = needsHumanTaskBodySchema.safeParse(parsedBody.value);
     const parsedKey = key ? idempotencyKeySchema.safeParse(key) : null;
     if (!parsed.success || (parsedKey && !parsedKey.success)) {
-      const response = apiError("VALIDATION_FAILED", "Invalid needs-human body or Idempotency-Key.", 400, {
+      const response = scopedError(context, "VALIDATION_FAILED", "Invalid needs-human body or Idempotency-Key.", 400, {
         issues: parsed.success ? [] : parsed.error.issues,
       });
       await audit(context, "task.needs_human.invalid", 400, { targetId: taskId, fiscalYearId: task.fiscal_year_id });
@@ -486,7 +510,7 @@ export async function handleTaskAction(
 
   const { data, error } = await context.client.rpc(rpcName, rpcArgs);
   if (error) {
-    const response = rpcErrorResponse(error);
+    const response = rpcErrorResponse(error, context.requestId);
     await audit(context, "task." + action + ".failed", response.status, {
       targetId: taskId,
       fiscalYearId: task.fiscal_year_id,
@@ -498,7 +522,7 @@ export async function handleTaskAction(
 
   if (data === null) {
     const { data: current } = await getTaskState(context, taskId);
-    const response = apiError("TASK_NOT_CLAIMABLE", "Task state or lease does not allow this operation.", 409, {
+    const response = scopedError(context, "TASK_NOT_CLAIMABLE", "Task state or lease does not allow this operation.", 409, {
       current_state: current ?? null,
     });
     await audit(context, "task." + action + ".conflict", 409, {

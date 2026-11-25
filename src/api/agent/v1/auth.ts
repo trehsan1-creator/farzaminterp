@@ -21,16 +21,16 @@ function safeEqual(expected: string, actual: string): boolean {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-function error(code: string, message: string, status: number): NextResponse {
-  return NextResponse.json({ error: { code, message } }, { status });
+function error(code: string, message: string, status: number, requestId: string): NextResponse {
+  return NextResponse.json({ error: { code, message }, request_id: requestId }, { status });
 }
 
-export function requireAgentApiKey(request: Request, scope: AgentScope): AgentAuthResult {
+export function requireAgentApiKey(request: Request, scope: AgentScope, requestId: string): AgentAuthResult {
   const env = getServerEnv();
   if (!env.agentApiKey) {
     return {
       ok: false,
-      response: error("NOT_CONFIGURED", "Agent API credentials are not configured for this environment.", 503),
+      response: error("NOT_CONFIGURED", "Agent API credentials are not configured for this environment.", 503, requestId),
     };
   }
 
@@ -40,14 +40,14 @@ export function requireAgentApiKey(request: Request, scope: AgentScope): AgentAu
   if (!token || !safeEqual(env.agentApiKey, token)) {
     return {
       ok: false,
-      response: error("UNAUTHORIZED", "Missing or invalid bearer token.", 401),
+      response: error("UNAUTHORIZED", "Missing or invalid bearer token.", 401, requestId),
     };
   }
 
   if (!env.agentApiScopes.includes(scope)) {
     return {
       ok: false,
-      response: error("FORBIDDEN", "The configured agent key does not have the required scope.", 403),
+      response: error("FORBIDDEN", "The configured agent key does not have the required scope.", 403, requestId),
     };
   }
 
