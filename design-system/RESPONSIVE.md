@@ -1,6 +1,6 @@
 # Responsive Design Specification
 
-Responsive behavior is mandatory for every screen and component. The product is desktop-first in work density, but implementation must be mobile-first and fully usable on touch devices.
+Responsive behavior is mandatory for every screen and component. The desktop workspace is optimized for financial work density, but every workflow must remain fully usable on touch devices.
 
 ## Verification widths
 | Range | Expected behavior |
@@ -8,32 +8,38 @@ Responsive behavior is mandatory for every screen and component. The product is 
 | 320–359px | Single column, compact controls, no page-level horizontal overflow |
 | 360–599px | Single column; stacked filters and cards |
 | 600–767px | Two-column cards only when content remains readable |
-| 768–1023px | Collapsible navigation; adaptive two-column content |
-| 1024–1279px | Sidebar may collapse; dense content uses available width |
+| 768–1023px | Dismissible navigation drawer; adaptive two-column content |
+| 1024–1279px | Persistent 264px sidebar; dense content uses available width |
 | 1280–1535px | Full navigation and multi-column workspaces |
-| 1536px+ | Center content to a readable max width; avoid overly long text lines |
+| 1536px+ | Readable content width; avoid overly long text lines |
 
 Prefer CSS grid minmax, flex wrapping, intrinsic sizing, and container queries where supported. Do not hard-code every component to a breakpoint.
 
 ## Application shell
-- Desktop: persistent sidebar (about 256px), top bar, fluid main column.
-- Tablet: sidebar collapses to icon rail or dismissible drawer.
-- Mobile: accessible menu/drawer or a suitable compact navigation pattern; compact top bar with page title and contextual action.
+- Wide desktop (1024px+): persistent RTL sidebar (about 264px), sticky top bar, fluid main column.
+- Tablet (768–1023px): dismissible overlay navigation drawer; menu control remains visible.
+- Mobile (320–767px): accessible drawer and compact top bar with company and fiscal-year context.
+- The drawer must be removed from the keyboard navigation flow while closed.
+- The selected fiscal year must persist when navigating between modules.
 - Navigation must never be hover-only. Respect mobile safe-area insets.
+- In RTL layouts, verify drawer direction and desktop visibility; direction-qualified CSS must not override desktop breakpoint state.
 
 ## Dashboards and charts
 - Wide desktop: 3–4 KPI cards per row where content fits.
 - Tablet: usually 2 cards per row.
 - Mobile: 1 or 2 cards depending on minimum readable width; stack when values collide.
+- KPI values must identify their unit, period, and data meaning.
+- Never infer cash, revenue, profit, or account balances from document totals unless the accounting query explicitly calculates them from posted records.
 - Charts resize with their container and retain readable axes, legends, and tooltips. Simplify labels on mobile or provide a labelled scrollable chart viewport.
 
 ## Tables
-- Desktop: semantic tables with headers, sorting, filters, and pagination.
+- Desktop: semantic tables with headers, sorting, filters, and pagination where implemented.
 - Tablet: hide only secondary columns when their values remain accessible in row details.
 - Mobile: use purpose-designed cards or an explicitly labelled horizontal scroll region. Never squeeze many columns into unreadable text.
 - Keep record identity, primary amount, date, and status visible.
 - Row actions must work without hover.
 - Horizontal scrolling may exist inside a deliberate table container, never as accidental page overflow.
+- Synthetic/demo records must be visibly labelled and must not look like posted company facts.
 
 ## Forms, dialogs, and menus
 - Desktop forms may use two columns for related short fields.
@@ -50,6 +56,8 @@ Activity feeds and review queues collapse to one column on mobile. Agent status 
 - [ ] 320px, 375px, 768px, 1024px, and 1440px verified.
 - [ ] No accidental horizontal overflow.
 - [ ] Navigation works by keyboard and touch.
+- [ ] Closed mobile drawer is not keyboard-focusable.
+- [ ] Fiscal-year selection persists across navigation.
 - [ ] Tables expose all critical fields.
 - [ ] Dialogs and popovers fit the viewport.
 - [ ] Long Persian and Latin strings wrap or isolate correctly.
