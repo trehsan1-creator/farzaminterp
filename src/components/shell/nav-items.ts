@@ -1,41 +1,44 @@
-/** Sidebar navigation structure (Persian, grouped). */
+/** Persian-first navigation map for the Farzam ERP workspace. */
 
 export interface NavItem {
   href: string;
   label: string;
+  icon: "dashboard" | "documents" | "imports" | "review" | "validation" | "ledger" | "treasury" | "commerce" | "assets" | "people" | "tax";
 }
 
 export interface NavGroup {
   title: string;
   items: NavItem[];
-  /** Future modules are visible but explicitly disabled. */
+  /** Future modules are visible but intentionally unavailable until implemented. */
   disabled?: boolean;
 }
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    title: "عملیات",
+    title: "نمای کلی",
     items: [
-      { href: "/", label: "داشبورد مالی" },
-      { href: "/documents", label: "دفتر اسناد" },
+      { href: "/", label: "داشبورد مالی", icon: "dashboard" },
     ],
   },
   {
-    title: "ورود اطلاعات",
+    title: "اسناد و داده‌ها",
     items: [
-      { href: "/imports", label: "مانیتور ورود اطلاعات" },
-      { href: "/imports/review", label: "بازبینی ورود اطلاعات" },
-      { href: "/validation", label: "اعتبارسنجی و استثناها" },
+      { href: "/documents", label: "دفتر اسناد", icon: "documents" },
+      { href: "/imports", label: "ورود اطلاعات", icon: "imports" },
+      { href: "/imports/review", label: "بازبینی و تطبیق", icon: "review" },
+      { href: "/validation", label: "کیفیت داده و استثناها", icon: "validation" },
     ],
   },
   {
-    title: "ماژول‌های آینده",
+    title: "ماژول‌های مالی",
     disabled: true,
     items: [
-      { href: "#", label: "حسابداری و دفتر کل" },
-      { href: "#", label: "خزانه و بانک" },
-      { href: "#", label: "فروش و خرید" },
-      { href: "#", label: "دارایی و مالیات" },
+      { href: "#ledger", label: "حسابداری و دفتر کل", icon: "ledger" },
+      { href: "#treasury", label: "خزانه و بانک", icon: "treasury" },
+      { href: "#commerce", label: "فروش و خرید", icon: "commerce" },
+      { href: "#assets", label: "انبار و دارایی‌ها", icon: "assets" },
+      { href: "#people", label: "حقوق و دستمزد", icon: "people" },
+      { href: "#tax", label: "مالیات و گزارش‌ها", icon: "tax" },
     ],
   },
 ];
