@@ -1,0 +1,412 @@
+/* Brand lockup and analytics visuals — Farzam ERP */
+
+.fz-sidebar-brand {
+  min-height: 88px;
+  gap: 11px;
+  padding: 17px 16px 15px;
+}
+.fz-sidebar-brand-mark {
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgb(255 255 255 / .18);
+  border-radius: 12px;
+  background: #fff;
+}
+.fz-sidebar-brand-mark img {
+  display: block;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+.fz-sidebar-brand-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+.fz-brand-wordmark-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: #fff;
+}
+.fz-brand-wordmark {
+  display: block;
+  width: 112px;
+  height: auto;
+}
+.fz-sidebar-brand .fz-brand-caption {
+  color: rgb(255 255 255 / .66);
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Dashboard analytics */
+.fz-analytics-section {
+  display: grid;
+  gap: 14px;
+}
+.fz-analytics-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: 2px;
+}
+.fz-analytics-heading-copy {
+  display: grid;
+  gap: 5px;
+}
+.fz-analytics-eyebrow {
+  color: var(--fz-brand-blue);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  direction: ltr;
+  text-align: right;
+}
+.fz-analytics-heading h2 {
+  color: var(--fz-brand-navy);
+  font-size: 18px;
+  font-weight: 800;
+}
+.fz-analytics-heading p {
+  color: var(--fz-text-secondary);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.fz-analytics-period {
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid #DCE6F8;
+  border-radius: 999px;
+  background: #F4F7FF;
+  color: #365FCB;
+  font-size: 10px;
+  font-weight: 700;
+}
+.fz-analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr);
+  gap: 15px;
+  align-items: stretch;
+}
+.fz-chart-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--fz-border);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(68 114 246 / .045), transparent 34%),
+    var(--fz-surface);
+  box-shadow: 0 4px 14px rgb(16 35 51 / .035);
+}
+.fz-chart-card-monthly {
+  grid-column: 1;
+}
+.fz-chart-card-types {
+  grid-column: 2;
+}
+.fz-chart-card-pipeline {
+  grid-column: 1 / -1;
+}
+.fz-chart-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 19px 12px;
+}
+.fz-chart-card-head h3 {
+  color: var(--fz-brand-navy);
+  font-size: 13px;
+  font-weight: 800;
+}
+.fz-chart-card-head p {
+  margin-block-start: 4px;
+  color: var(--fz-text-muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+.fz-chart-stat {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.fz-chart-stat strong {
+  color: var(--fz-brand-navy);
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fz-chart-stat span {
+  color: var(--fz-text-muted);
+  font-size: 9px;
+}
+.fz-chart-svg-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 10px;
+  scrollbar-width: thin;
+}
+.fz-monthly-chart {
+  display: block;
+  width: 100%;
+  min-width: 540px;
+  height: auto;
+  overflow: visible;
+}
+.fz-chart-bar-value {
+  fill: #365FCB;
+  font-family: var(--fz-font-sans);
+  font-size: 11px;
+  font-weight: 800;
+}
+.fz-chart-axis-label {
+  fill: #75849A;
+  font-family: var(--fz-font-sans);
+  font-size: 10px;
+}
+.fz-chart-footnote {
+  margin-block-start: auto;
+  padding: 9px 18px 13px;
+  border-block-start: 1px solid #F0F3F8;
+  color: var(--fz-text-muted);
+  font-size: 9px;
+  line-height: 1.7;
+}
+.fz-donut-layout {
+  display: grid;
+  grid-template-columns: minmax(128px, 172px) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 2px 15px 10px;
+}
+.fz-donut-chart {
+  display: block;
+  width: 100%;
+  max-width: 172px;
+  margin-inline: auto;
+}
+.fz-donut-total {
+  fill: var(--fz-brand-navy);
+  font-family: var(--fz-font-sans);
+  font-size: 27px;
+  font-weight: 800;
+}
+.fz-donut-caption {
+  fill: var(--fz-text-muted);
+  font-family: var(--fz-font-sans);
+  font-size: 11px;
+}
+.fz-donut-legend {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fz-donut-legend li {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.fz-donut-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+}
+.fz-donut-legend-label {
+  overflow: hidden;
+  color: var(--fz-text-secondary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fz-donut-legend strong {
+  color: var(--fz-brand-navy);
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fz-donut-legend small {
+  min-width: 30px;
+  color: var(--fz-text-muted);
+  font-size: 9px;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.fz-pipeline-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 28px;
+  padding: 9px 20px 18px;
+}
+.fz-pipeline-row {
+  display: grid;
+  grid-template-columns: minmax(100px, .7fr) minmax(80px, 1.3fr) 24px;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.fz-pipeline-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--fz-text-secondary);
+  font-size: 10px;
+}
+.fz-pipeline-label > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fz-pipeline-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.fz-pipeline-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #EDF1F6;
+}
+.fz-pipeline-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  transition: width 220ms ease;
+}
+.fz-pipeline-value {
+  color: var(--fz-brand-navy);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.fz-chart-empty {
+  display: flex;
+  min-height: 150px;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px;
+  text-align: center;
+}
+.fz-chart-empty-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-block-end: 3px;
+  border-radius: 10px;
+  background: #EEF3FF;
+  color: var(--fz-brand-blue);
+  font-size: 22px;
+}
+.fz-chart-empty strong {
+  color: var(--fz-brand-navy);
+  font-size: 11px;
+}
+.fz-chart-empty > span:last-child {
+  max-width: 32ch;
+  color: var(--fz-text-muted);
+  font-size: 9px;
+  line-height: 1.8;
+}
+.fz-analytics-disclaimer {
+  padding: 10px 13px;
+  border: 1px solid #E4EAF3;
+  border-radius: 9px;
+  background: #F8FAFD;
+  color: #68778B;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+@media (max-width: 767px) {
+  .fz-sidebar-brand {
+    min-height: 78px;
+    padding: 14px 14px 12px;
+  }
+  .fz-sidebar-brand-mark {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+  .fz-sidebar-brand-mark img {
+    width: 24px;
+    height: 24px;
+  }
+  .fz-brand-wordmark {
+    width: 102px;
+  }
+  .fz-analytics-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .fz-analytics-heading h2 {
+    font-size: 16px;
+  }
+  .fz-analytics-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+  .fz-chart-card-monthly,
+  .fz-chart-card-types,
+  .fz-chart-card-pipeline {
+    grid-column: 1;
+  }
+  .fz-chart-card-head {
+    padding: 14px 15px 10px;
+  }
+  .fz-donut-layout {
+    grid-template-columns: minmax(116px, 148px) minmax(0, 1fr);
+    padding-inline: 12px;
+  }
+  .fz-pipeline-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding-inline: 15px;
+  }
+  .fz-chart-footnote {
+    padding-inline: 14px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .fz-analytics-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, .85fr);
+  }
+  .fz-donut-layout {
+    grid-template-columns: minmax(115px, 140px) minmax(0, 1fr);
+  }
+  .fz-pipeline-list {
+    gap: 14px 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fz-pipeline-fill {
+    transition: none;
+  }
+}

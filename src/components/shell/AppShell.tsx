@@ -9,6 +9,7 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { NAV_GROUPS, type NavItem } from "./nav-items";
 import { FiscalYearSelect } from "./FiscalYearSelect";
@@ -111,12 +112,14 @@ export function AppShell({ company, fiscalYears, dbConfigured, children }: AppSh
         onKeyDown={onKeyDown}
       >
         <div className="fz-sidebar-brand">
-          {/* Official, unmodified Ati Farzam brand asset. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/af-logo.svg" alt="نشان آتی فرزام" />
+          <div className="fz-sidebar-brand-mark">
+            <Image src="/brand/af-logo.svg" alt="نشان آتی فرزام" width={42} height={42} priority />
+          </div>
           <div className="fz-sidebar-brand-copy">
-            <span className="fz-brand-text">فرزام ERP</span>
-            <span className="fz-brand-caption">سامانه یکپارچه مالی</span>
+            <span className="fz-brand-wordmark-frame">
+              <Image src="/brand/wordmark-fa.svg" alt="آتی فرزام" width={112} height={38} className="fz-brand-wordmark" priority />
+            </span>
+            <span className="fz-brand-caption">سامانه یکپارچه مالی · ERP</span>
           </div>
         </div>
 

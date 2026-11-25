@@ -5,12 +5,12 @@ Source of truth: the user-supplied assets.zip archive.
 ## Official SVG assets
 | Source archive path | Repository path | Status |
 |---|---|---|
-| assets/images/af-logo.svg | assets/brand/af-logo.svg | Committed |
-| assets/images/typography-fa.svg | assets/brand/wordmark-fa.svg | Committed |
-| assets/images/typography-en.svg | assets/brand/wordmark-en.svg | Committed |
+| assets/images/af-logo.svg | assets/brand/af-logo.svg and public/brand/af-logo.svg | Committed |
+| assets/images/typography-fa.svg | assets/brand/wordmark-fa.svg and public/brand/wordmark-fa.svg | Committed |
+| assets/images/typography-en.svg | assets/brand/wordmark-en.svg and public/brand/wordmark-en.svg | Committed |
 | assets/images/isometric.svg | assets/brand/isometric.svg | Pending |
 
-The logo symbol and both wordmarks preserve the supplied #102333 brand artwork. Do not recreate them using text, stretch their aspect ratio, or apply CSS filters that alter the brand color. The isometric artwork is decorative; use sparingly and never behind financial data.
+The logo symbol and both wordmarks preserve the supplied #102333 brand artwork. The public/brand copies are served by the application shell and browser icon metadata. Do not recreate them using text, stretch their aspect ratio, or apply CSS filters that alter the brand color. The isometric artwork is decorative; use sparingly and never behind financial data.
 
 ## Peyda font files
 The archive contains these exact WOFF2 files:
@@ -36,7 +36,7 @@ The script extracts the original archive entries and verifies the SHA-256 hashes
 - Persian wordmark: committed.
 - English wordmark: committed.
 - Isometric illustration: not yet committed.
-- Five original Peyda WOFF2 binaries: identified and hash-verified in the attached archive, but not yet uploaded to GitHub by the repository text-file integration. Use the import script from a local checkout to add them as binary files.
+- Five original Peyda WOFF2 binaries: committed under assets/fonts/ and loaded locally through src/app/fonts.ts. No external font CDN is used.
 
 ## Do not
 - recreate wordmarks with a generic font;
