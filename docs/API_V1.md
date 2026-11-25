@@ -1,96 +1,84 @@
-# Farzam ERP — Muse/PIP API Contract v1
+# Farzam ERP API — v1
 
-Versioned JSON boundary for external agents (Muse/PIP, Farzam Bot v2).
-**Agents never touch the database directly** (AGENTS.md §7). All routes
-live under `src/app/api/v1/`, validate input with the zod schemas in
-`src/api/v1/contracts.ts`, and answer through a stable error envelope.
+This document covers the existing Muse ingestion boundary and the PIP Agent task API. All privileged database access remains server-side. Agents do not connect directly to PostgreSQL or Supabase.
 
-## Authentication
+## 1. Existing Muse ingestion boundary
 
-- Header: `x-muse-api-key`.
-- The key is compared (timing-safe) against the server-side
-  `MUSE_API_KEY` environment variable.
-- **Stage 00 provisions no credential.** With `MUSE_API_KEY` unset every
-  endpoint answers:
+The legacy API uses the server-only `MUSE_API_KEY` header (`x-muse-api-key`). It remains separate from the PIP Agent API.
 
-  ```json
-  { "error": { "code": "NOT_CONFIGURED", "message": "..." } }   // 503
-  ```
+- `GET /api/v1/health` — public liveness/version probe; reveals no data or configuration.
+- `POST /api/v1/import/batches` — legacy source/batch registration contract. It is not the Milestone B document upload contract and must not be used as proof that raw bytes were archived.
 
-- Invalid/missing key against a configured server → `401 UNAUTHORIZED`.
-- Privileged Supabase keys are never exposed to clients; routes use the
-  server-side service client only.
+`MUSE_API_KEY` remains empty until the owner provisions it in the deployment environment.
 
-## Conventions
+## 2. PIP Agent API
 
-| Concern | Rule |
-|---|---|
-| Money | exact integer **strings** (`"4200000000"`); JSON numbers, decimals and exponent forms are rejected by schema |
-| Currency | explicit `IRR` / `IRT` only — never inferred |
-| Dates | canonical ISO `YYYY-MM-DD` (Jalali is display-only) |
-| Fiscal scope | every financial read requires an explicit `fiscal_year_id`; no defaulting from the current date |
-| Errors | `{ "error": { "code", "message", "details?" } }` |
-| Versioning | additive changes stay in v1; breaking changes create `/api/v2` |
+Base path: `/api/agent/v1`
 
-## Endpoints
+Authentication:
 
-### `GET /api/v1/health`
-Unauthenticated liveness/version probe.
-→ `200 { "status": "ok", "api": "v1", "service": "farzam-erp" }`
+- Header: `Authorization: Bearer <AGENT_API_KEY>`
+- Scopes: `tasks:read`, `tasks:write`, `audit:read`
+- The development key is intentionally not created or stored in source control or chat.
+- Set `AGENT_API_KEY`, `AGENT_API_KEY_ID`, `AGENT_ID`, optional `AGENT_COMPANY_ID`, and `AGENT_API_SCOPES` in the deployment's secure environment settings.
+- When the key or database configuration is absent, endpoints return `503 NOT_CONFIGURED`; they never fall back to anonymous access.
+- If exactly one active company exists, the API resolves that company. Multi-company environments must set `AGENT_COMPANY_ID`.
 
-### `GET /api/v1/fiscal-years?company_id=<uuid>`
-Fiscal-year workspaces of a company.
-→ `200 { "fiscal_years": [{ "id", "label", "start_date", "end_date", "status", "is_reconstruction" }] }`
+### Task queue endpoints
 
-### `GET /api/v1/documents?fiscal_year_id=<uuid>&limit=&offset=`
-Read-only document registry for one fiscal year.
-→ `200 { "documents": [...], "limit", "offset" }`
-Missing/invalid `fiscal_year_id` → `400 FISCAL_YEAR_REQUIRED`.
+| Method | Path | Scope | Purpose |
+|---|---|---|---|
+| GET | `/health` | `tasks:read` | Real database check and open queue depth |
+| GET | `/tasks?status=open&type=report&limit=50&cursor=0` | `tasks:read` | List tasks in oldest-first order |
+| POST | `/tasks/{id}/claim` | `tasks:write` | Atomically claim an open task |
+| POST | `/tasks/{id}/heartbeat` | `tasks:write` | Renew the owned lease |
+| POST | `/tasks/{id}/release` | `tasks:write` | Release an owned task without consuming a failure attempt |
+| POST | `/tasks/{id}/complete` | `tasks:write` | Store the result and complete the task |
+| POST | `/tasks/{id}/fail` | `tasks:write` | Retry with back-off or mark terminal failure |
+| POST | `/tasks/{id}/needs-human` | `tasks:write` | Release the lease and request a human decision |
+| GET | `/audit?limit=100` | `audit:read` | Read the append-only audit trail |
 
-### `GET /api/v1/import-batches?fiscal_year_id=<uuid>`
-Import batch monitor (status/stage/stats).
-→ `200 { "import_batches": [...] }`
+### Task state machine
 
-### `POST /api/v1/import/batches`
-Idempotent source-file + batch registration (boundary stub for Stage 00):
+`open → in_progress → done` is the normal path.
 
-```jsonc
-{
-  "fiscal_year_id": "uuid",
-  "original_filename": "fy1404-ledger.csv",
-  "content_sha256": "<64 hex>",
-  "byte_size": 12345,
-  "content_base64": "...",
-  "pipeline_version": "fy1404-import@1",   // optional
-  "expected_totals": {                      // optional, explicit only
-    "rows": 120,
-    "total_amount": "4200000000",
-    "currency": "IRR"
-  },
-  "declared_currency": "IRR"                // optional operator declaration
-}
-```
+An agent claim increments `attempt_count` and acquires a lease. Default lease: 1,800 seconds; allowed range: 60–3,600 seconds. Heartbeat renews the lease only while the caller owns an unexpired lease.
 
-- The server re-hashes the bytes; a mismatch → `400 VALIDATION_FAILED`
-  **before any write**.
-- First call → `201 { batch_id, status, stage, created: true, idempotency_key }`.
-- Retry with identical bytes → `200 { ..., created: false }` (same batch).
-- Normalization/validation/posting are NOT performed by this endpoint;
-  they run through the pipeline service (see `docs/IMPORT_PIPELINE.md`).
+- Retryable failure with attempts remaining returns the task to `open` and sets `next_attempt_at`.
+- Back-off is `2^attempt_count` minutes, capped at 60 minutes.
+- Permanent failure or exhausted attempts moves the task to terminal `failed` and signals escalation.
+- Lease expiry is not a failure. The reaper returns the task to `open` without incrementing attempts or overwriting the last error.
+- `needs-human` moves the task to `waiting_for_human` and releases the lease. Human reply/reopen is a web-side action; no agent endpoint can approve its own request.
 
-## Write-authority rules (Muse)
+### Idempotency and audit
 
-- Muse may register source files, read permitted records, and propose
-  data through these contracts.
-- Posting financial records requires an `approvals` decision by an
-  authorized human — the API cannot bypass `post_import_batch`.
-- Every agent write must carry an idempotency anchor (content hash /
-  idempotency key) and is attributed in `audit_events`.
-- AI-suggested values are never presented as posted facts.
+- `Idempotency-Key` is required for `complete` and `fail`; it is recommended for `needs-human`.
+- A repeated completion/failure with the same task and key returns the original receipt.
+- Task ownership is the pair `(claimed_by, unexpired lease)`; otherwise mutating calls return 409.
+- Every API call is recorded with request id, actor/key id, route, action, status, task reference, and safe metadata. The audit log is append-only.
+- Audit-write failure returns 503 after the operation. A client must retry with the same idempotency key for complete/fail.
 
-## Roadmap (later stages)
+### Internal lease reaper
 
-- `POST /api/v1/import/batches/{id}/run` — run pipeline stages remotely.
-- `POST /api/v1/approvals` — request/decide approvals with scopes.
-- Read endpoints for journal entries, invoices, treasury and reports.
-- Scoped tokens per agent/task with rate limits and audit correlation.
+`GET /api/internal/agent/reap` requires `Authorization: Bearer <CRON_SECRET>`. It is not public and must only be called by a configured scheduler. `CRON_SECRET` is not created in source control or chat. The route is implemented; the scheduler is intentionally not activated until its environment secret and schedule are configured.
+
+## 3. Explicitly outside the Agent API
+
+The current Agent API has no endpoint to:
+
+- post or reverse a journal entry;
+- approve an accounting entry;
+- issue or execute a payment;
+- approve or run payroll;
+- file a tax return;
+- close or lock a fiscal year;
+- change the chart of accounts or agent policy.
+
+Those are Class-C operations. They remain authenticated web-UI actions with server-side role checks and database controls. Milestone B will add document registration, extraction submission, journal-entry proposals, and read-only ledger endpoints; it will not add an agent posting endpoint.
+
+## 4. Data and deployment safety
+
+- Never expose the Supabase service-role key to the browser or to Muse.
+- Use separate preview and production Supabase credentials.
+- Do not use real company records in external AI services or preview deployments without explicit data-residency approval.
+- Financial amounts in API contracts must use exact integer strings or exact integer database values with explicit currency. Never use JSON floating-point amounts.
