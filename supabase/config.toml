@@ -1,0 +1,37 @@
+# Supabase local/project configuration (Stage 00).
+# Migrations live in supabase/migrations/ and are applied with the Supabase
+# CLI (`supabase db push`) as a separately controlled deployment step.
+# No project is linked yet — see docs/STAGE00_REPORT.md §6.
+
+project_id = "farzam-erp"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[inbucket]
+enabled = true
+port = 54324
