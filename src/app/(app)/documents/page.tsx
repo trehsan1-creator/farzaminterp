@@ -1,9 +1,11 @@
+import Link from "next/link";
 import {
   PageHeading,
   EmptyState,
   UnconfiguredState,
   FiscalYearRequiredState,
   Badge,
+  Alert,
 } from "@/components/ui/states";
 import { resolveScope } from "@/modules/queries/scope";
 import { listDocuments } from "@/modules/queries";
@@ -21,11 +23,7 @@ interface Props {
   searchParams: Promise<{ fy?: string }>;
 }
 
-/**
- * FY document registry. On mobile the table becomes a labelled horizontal
- * scroll region (design-system RESPONSIVE.md) — record identity, date,
- * amount and status stay visible.
- */
+/** Fiscal-year document register. Financial facts remain read-only in Stage 00. */
 export default async function DocumentsPage({ searchParams }: Props) {
   const params = await searchParams;
   const scope = await resolveScope(params);
@@ -33,7 +31,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
   if (scope.kind === "unconfigured") {
     return (
       <>
-        <PageHeading title="دفتر اسناد" subtitle="اسناد مالی سال مالی انتخاب‌شده" />
+        <PageHeading title="دفتر اسناد" subtitle="فهرست اسناد مالی سال انتخاب‌شده" />
         <UnconfiguredState />
       </>
     );
@@ -51,7 +49,7 @@ export default async function DocumentsPage({ searchParams }: Props) {
   if (scope.kind === "no_selection") {
     return (
       <>
-        <PageHeading title="دفتر اسناد" subtitle="اسناد مالی سال مالی انتخاب‌شده" />
+        <PageHeading title="دفتر اسناد" subtitle="برای مشاهده اسناد، یک سال مالی انتخاب کنید." />
         <FiscalYearRequiredState />
       </>
     );
@@ -60,83 +58,99 @@ export default async function DocumentsPage({ searchParams }: Props) {
   const docsRes = await listDocuments(scope.scope);
   const fyLabel = toFaDigits(scope.fiscalYear.label);
 
+  if (!docsRes.ok) {
+    return (
+      <>
+        <PageHeading title={"دفتر اسناد " + fyLabel} />
+        <UnconfiguredState />
+      </>
+    );
+  }
+
+  const hasDemoData = docsRes.data.some((doc) => doc.document_no?.startsWith("DEMO-"));
+  const demoCount = docsRes.data.filter((doc) => doc.document_no?.startsWith("DEMO-")).length;
+
   return (
     <>
       <PageHeading
-        title={`دفتر اسناد ${fyLabel}`}
-        subtitle="اسناد ثبت‌شده در سال مالی انتخاب‌شده — هر سند به منبع خود مستند است"
+        title={"دفتر اسناد " + fyLabel}
+        subtitle="فهرست متمرکز اسناد ثبت‌شده؛ هر سند در محدوده سال مالی خودش نگهداری می‌شود."
         actions={
-          <span className="fz-btn fz-btn-secondary" aria-disabled="true" title="در مرحله بعدی">
-            ثبت سند دستی
-          </span>
+          <Link href={"/imports?fy=" + scope.fiscalYear.id} className="fz-btn fz-btn-primary">
+            <span aria-hidden="true">＋</span>
+            ورود فایل منبع
+          </Link>
         }
       />
 
-      {!docsRes.ok ? (
-        <UnconfiguredState />
-      ) : docsRes.data.length === 0 ? (
-        <EmptyState title="سندی در این سال مالی ثبت نشده است">
-          دفتر اسناد پس از ورود و انتشار اولین فایل منبع پر می‌شود. هیچ سند آزمایشی یا
-          نمونه‌ای برای «پر به نظر رسیدن» صفحه ساخته نمی‌شود.
-        </EmptyState>
-      ) : (
-        <div
-          className="fz-table-wrap"
-          role="region"
-          aria-label="جدول اسناد — قابل پیمایش افقی"
-          tabIndex={0}
-        >
-          <table className="fz-table">
-            <caption>
-              {toFaDigits(String(docsRes.data.length))} سند در سال مالی {fyLabel} —
-              پیمایش افقی در صفحه‌های کوچک
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">نوع سند</th>
-                <th scope="col">شماره سند</th>
-                <th scope="col">تاریخ سند</th>
-                <th scope="col">شرح</th>
-                <th scope="col" className="fz-num-th">مبلغ</th>
-                <th scope="col">وضعیت</th>
-                <th scope="col">منبع</th>
-                <th scope="col">اقدام</th>
-              </tr>
-            </thead>
-            <tbody>
-              {docsRes.data.map((doc) => {
-                const st = documentStatusBadge(doc.status);
-                return (
-                  <tr key={doc.id}>
-                    <td>{documentTypeLabel(doc.document_type)}</td>
-                    <td>
-                      <span className="fz-table-id">{doc.document_no ?? "—"}</span>
-                    </td>
-                    <td className="fz-numeric">{displayDate(doc.document_date)}</td>
-                    <td>{doc.description ?? "—"}</td>
-                    <td className="fz-num">{displayMoney(doc.amount_total, doc.currency)}</td>
-                    <td>
-                      <Badge variant={st.variant}>{st.label}</Badge>
-                    </td>
-                    <td>{doc.source === "import" ? "ورود فایل" : "دستی"}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="fz-btn fz-btn-secondary"
-                        style={{ minHeight: 36, fontSize: "var(--fz-text-sm)", padding: "0 var(--fz-space-3)" }}
-                        aria-disabled="true"
-                        title="جزئیات سند در مراحل بعدی اضافه می‌شود"
-                      >
-                        مشاهده
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {hasDemoData ? (
+        <Alert tone="info" title="این فهرست شامل داده‌های نمونه آزمایشی است">
+          {toFaDigits(String(demoCount))} سند با شناسه DEMO برای بررسی رابط کاربری ثبت شده است. این رکوردها سند قطعی حسابداری یا مانده واقعی شرکت نیستند.
+        </Alert>
+      ) : null}
+
+      <section className="fz-dashboard-panel" aria-label="فهرست اسناد مالی">
+        <header className="fz-dashboard-panel-head">
+          <div>
+            <h2>اسناد سال مالی {fyLabel}</h2>
+            <p>{toFaDigits(String(docsRes.data.length))} رکورد در محدوده انتخاب‌شده</p>
+          </div>
+          <Badge variant="neutral">واحد پایه: {scope.company.base_currency === "IRR" ? "ریال" : "تومان"}</Badge>
+        </header>
+
+        {docsRes.data.length === 0 ? (
+          <div className="fz-dashboard-panel-body">
+            <EmptyState title="سندی در این سال مالی ثبت نشده است">
+              پس از ورود فایل منبع و تکمیل فرایند بررسی، اسناد معتبر در این دفتر نمایش داده می‌شوند.
+            </EmptyState>
+          </div>
+        ) : (
+          <div className="fz-table-wrap fz-table-wrap-panel" role="region" aria-label="جدول اسناد، قابل پیمایش افقی" tabIndex={0}>
+            <table className="fz-table">
+              <caption>
+                {toFaDigits(String(docsRes.data.length))} سند در سال مالی {fyLabel}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">شماره سند</th>
+                  <th scope="col">نوع سند</th>
+                  <th scope="col">تاریخ</th>
+                  <th scope="col">شرح</th>
+                  <th scope="col" className="fz-num-th">مبلغ</th>
+                  <th scope="col">وضعیت</th>
+                  <th scope="col">نحوه ثبت</th>
+                </tr>
+              </thead>
+              <tbody>
+                {docsRes.data.map((doc) => {
+                  const status = documentStatusBadge(doc.status);
+                  const isDemo = doc.document_no?.startsWith("DEMO-") ?? false;
+                  return (
+                    <tr key={doc.id}>
+                      <td>
+                        <div className="fz-document-number">
+                          <span className="fz-table-id">{doc.document_no ?? "—"}</span>
+                          {isDemo ? <span className="fz-document-demo-label">نمونه</span> : null}
+                        </div>
+                      </td>
+                      <td>{documentTypeLabel(doc.document_type)}</td>
+                      <td className="fz-numeric">{displayDate(doc.document_date)}</td>
+                      <td>
+                        <span className="fz-document-description" title={doc.description ?? undefined}>
+                          {doc.description ?? "بدون شرح"}
+                        </span>
+                      </td>
+                      <td className="fz-num">{displayMoney(doc.amount_total, doc.currency)}</td>
+                      <td><Badge variant={status.variant}>{status.label}</Badge></td>
+                      <td>{isDemo ? "داده آزمایشی" : doc.source === "import" ? "ورود فایل" : "ثبت دستی"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </>
   );
 }
