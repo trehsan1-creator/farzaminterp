@@ -1,38 +1,145 @@
-# Repository Instructions — Farzam ERP
+# AGENTS.md — Farzam ERP Repository Operating Rules
 
-This repository follows the Farzam ERP Design System as its mandatory UI and UX source of truth.
+This file applies to the **entire repository**: product engineering, architecture, backend, database, security, integrations, testing, documentation, deployment, and UI. It is not a design-only instruction file.
 
-## Before changing or creating UI
-1. Read `design-system/README.md`.
-2. Read the relevant foundation documents under `design-system/`.
-3. Read `design-system/tokens.css` and reuse its design tokens.
-4. Inspect the current application stack and existing patterns before choosing implementation details. Do not assume a framework or replace existing architecture without approval.
+The detailed visual and interaction specification is maintained separately in `design-system/`. These instructions govern the wider engineering work; the design system is authoritative specifically for user-facing UI.
 
-## Non-negotiable requirements
-- Every user-facing screen must be fully responsive and mobile-first, not merely desktop layouts squeezed onto small screens.
-- Persian is the primary interface language. Use RTL at the document and layout level, while explicitly isolating LTR values such as IDs, codes, URLs, serial numbers, and Latin technical strings.
-- Use the supplied Peyda font family and official Farzam brand assets where available. Do not redraw, recolor, distort, or replace the logo.
-- Reuse semantic color, spacing, typography, radius, border, elevation, and state tokens. Do not introduce arbitrary one-off values when a token exists.
-- Build reusable components and consistent interaction patterns. Do not duplicate page-specific controls.
-- Financial amounts, dates, statuses, and tables must follow `design-system/RTL_AND_LOCALE.md` and `design-system/COMPONENTS.md`.
-- All tables, filters, forms, dialogs, navigation, charts, and PIP/AI surfaces must follow the responsive rules in `design-system/RESPONSIVE.md`.
-- Meet the accessibility requirements in `design-system/ACCESSIBILITY.md`; never communicate status through color alone.
-- Preserve backend contracts, database semantics, permissions, and business rules. A visual task is not permission to change them.
+## 1. Product context
 
-## Responsive verification
-Before marking a UI task complete, verify at minimum:
-- 320px and 375px mobile widths
-- 768px tablet width
-- 1024px compact desktop width
-- 1440px desktop width
+Farzam ERP is the financial and operational system of record for Ati Farzam. The product is intended to support:
+- independent fiscal-year workspaces, initially including 1403, 1404, and 1405;
+- comprehensive reconstruction and review of fiscal year 1404;
+- accounting, treasury, sales, purchases, expenses, petty cash, contracts/projects, payroll, assets, inventory, and tax workflows;
+- document intake, extraction, reconciliation, reporting, and approvals;
+- controlled integration with PIP/Muse agents and the existing Farzam Bot v2 Telegram gateway.
 
-Check for horizontal page overflow, clipped controls, unreadable tables, inaccessible menus, overlapping dialogs, and broken RTL/LTR mixed content. Horizontal scrolling is permitted only inside deliberately designed data/table containers, never as accidental page overflow.
+The default business interface is Persian and Jalali-calendar aware. The base currency is Rial unless a specific record explicitly identifies another unit. Never silently convert Rial and Toman.
 
-## Completion checklist
-- Responsive behavior has been checked at the widths above.
-- Loading, empty, error, success, disabled, and permission-denied states are handled where relevant.
-- Keyboard focus and accessible names are present.
-- No unapproved brand colors, fonts, or visual patterns were introduced.
-- Relevant design-system documentation is updated when a reusable pattern or token changes.
+## 2. Target architecture
 
-The authoritative design specification is in `design-system/`. If an implementation request conflicts with it, explain the conflict and ask for clarification rather than silently inventing a new visual language.
+The approved target direction is:
+- Next.js App Router and TypeScript for the web application and server-side application/API layer;
+- PostgreSQL through Supabase for persistent business data;
+- Supabase Auth for user authentication;
+- PostgreSQL Row Level Security and server-side authorization for access control;
+- Supabase Storage for private business documents;
+- Vercel for the initial web deployment, subject to the company's data-residency approval;
+- PIP/Muse and Farzam Bot v2 as separately operated integrations using explicit, versioned API contracts.
+
+Use a **modular monolith** initially. Keep domain modules and boundaries explicit without introducing microservices, Kubernetes, or unnecessary infrastructure for the MVP.
+
+Before implementing, inspect the actual repository state, package manifests, existing decisions, and environment. Do not overwrite an existing scaffold, change framework versions, or introduce a competing architecture without explaining why and obtaining approval.
+
+## 3. Engineering workflow
+
+For every non-trivial task:
+1. Inspect the relevant code, documentation, schema, and tests before editing.
+2. State the intended scope and identify affected modules.
+3. Make the smallest coherent change that satisfies the task.
+4. Keep business logic out of presentation components.
+5. Add or update tests for changed behavior.
+6. Update relevant technical documentation and migration notes.
+7. Report files changed, checks run, known gaps, and any action requiring owner approval.
+
+Do not fabricate implementation status, test results, financial facts, or successful external actions. If something could not be verified, say so.
+
+Avoid speculative abstractions and premature generalization. Prefer clear domain boundaries, typed interfaces, predictable errors, and maintainable code.
+
+## 4. Financial data integrity — non-negotiable
+
+- Every financial record must belong to an explicit company and fiscal year where applicable.
+- Fiscal years are isolated operational contexts. Cross-year comparison is read-only analytics; it must not merge or mutate source-year records.
+- Keep source documents and extracted/proposed data distinguishable from reviewed and posted financial facts.
+- Preserve provenance: source document, import batch, actor/agent, timestamps, and relevant approval history.
+- Use exact monetary representations. Never use JavaScript floating-point arithmetic for financial calculations. Persist amounts using an explicitly chosen exact PostgreSQL representation (integer minor/base units or NUMERIC with documented scale); never silently round.
+- Store and display currency/unit explicitly. Do not infer Rial/Toman from the numeric magnitude.
+- Use database transactions for multi-record financial operations.
+- Posted accounting entries must balance. Do not edit posted journal lines in place; use controlled reversal/correction entries with audit history.
+- Do not delete posted or approved financial records through ordinary UI flows.
+- Imports must be idempotent or have duplicate-detection controls. Re-running an import must not silently duplicate financial facts.
+- Never invent missing dates, amounts, counterparties, classifications, or accounting entries. Mark uncertainty and route it for review.
+- Fiscal-year closing, opening balances, and cross-year carry-forward require explicit rules and authorized approval.
+
+## 5. Database and migrations
+
+- Treat PostgreSQL constraints as part of the business rules, not merely application validation.
+- Use foreign keys, unique constraints, check constraints, indexes, and transactions where appropriate.
+- Every schema change must be delivered as a versioned migration.
+- Do not make undocumented manual production schema changes.
+- Migrations must be reviewed for data impact, safe ordering, rollback/recovery implications, and index-lock risk.
+- Keep generated database types synchronized with migrations.
+- Apply least privilege to database roles and service credentials.
+- RLS must be enabled and tested on every user-accessible business table. Never rely on client-side filtering as authorization.
+- Test both permitted and denied access paths, including cross-company and cross-fiscal-year access where applicable.
+
+## 6. Security and privacy
+
+- Never commit secrets, tokens, private keys, service-role credentials, or real production environment files.
+- Keep privileged Supabase keys server-side only. Never expose a service-role key in browser bundles.
+- Private documents must use private buckets and authorized access or short-lived signed URLs.
+- Validate and authorize every server action/API request independently.
+- Apply input validation, output shaping, rate limits where appropriate, and safe error handling.
+- Log security-relevant events without logging credentials, full sensitive documents, or unnecessary personal data.
+- Separate development, preview/staging, and production environments and credentials.
+- Do not put real company financial records into preview deployments or external AI services unless the company has explicitly approved the data flow and hosting region.
+- Treat data residency as a release gate, not an assumption. Vercel/Supabase region choices must comply with the owner's and company's policy before real data is deployed.
+
+## 7. PIP / Muse / Bot integration rules
+
+- Integrations must use documented, versioned API contracts; do not let agents access the database directly.
+- PIP/Muse may read permitted records, extract documents, classify, reconcile, draft entries, prepare reports, and create approval requests according to explicit scopes.
+- Clearly distinguish AI suggestions, extracted values, reviewed values, and posted accounting facts.
+- Human approval is required for sensitive or irreversible financial actions unless a later approved policy explicitly defines a safe delegated action.
+- Every agent write must be authenticated, authorized, auditable, and attributable to an agent/task identity.
+- Use idempotency keys or equivalent duplicate protection for retried writes.
+- Long-running document/OCR/AI work must run as asynchronous jobs. Do not perform heavy processing inside short-lived request handlers.
+- Job states, retries, failure reasons, source document IDs, and final outcomes must be observable.
+- An agent must never claim a record was saved, a message was delivered, or an approval was completed until the relevant service confirms success.
+- Farzam Bot v2 is a messaging gateway; it is not the financial system of record.
+
+## 8. UI and design-system rules
+
+For user-facing interfaces, read `design-system/README.md` and the relevant documents under `design-system/` before implementation.
+
+- All screens must be fully responsive and mobile-first.
+- Persian is the primary interface language and RTL must be structural.
+- Use the supplied official brand assets and Peyda font files when present.
+- Reuse design tokens and shared components; do not create unrelated per-page visual styles.
+- Financial tables, amount inputs, Jalali date controls, approval flows, and PIP review components must follow the design-system contracts.
+- Meet the accessibility requirements and never communicate status by color alone.
+- Keep AI activity visually distinct from authoritative financial records.
+
+## 9. Testing and quality gates
+
+Use the test tooling already established by the project; do not add a competing test framework without reason.
+
+At minimum, add tests appropriate to the change:
+- unit tests for domain calculations, currency/date formatting, validation, and state transitions;
+- integration tests for database constraints, transactions, authorization, and API contracts;
+- import/idempotency tests for document and financial ingestion;
+- responsive UI checks for 320px, 375px, 768px, 1024px, and 1440px;
+- regression tests for fiscal-year isolation and permission boundaries.
+
+Before declaring a task complete, run relevant lint, type-check, tests, and build commands when the repository is configured for them. Report commands that were not run and why.
+
+## 10. Deployment and operations
+
+- Use Vercel Preview deployments for review and Production deployments only from the approved production branch.
+- Keep preview and production environment variables and Supabase projects separate.
+- Never point preview builds at the production database.
+- Treat database migrations as a separately controlled deployment step.
+- Configure error monitoring, backups, restore procedures, and operational alerts before real financial operations go live.
+- Verify Vercel Function region and database region proximity, but do not trade data-residency requirements for latency.
+- Long-running work belongs in an external worker/agent runtime or durable queue, not a synchronous web request.
+
+## 11. Completion report
+
+Every implementation task should end with:
+- a concise summary of behavior delivered;
+- exact files and migrations changed;
+- tests, type checks, lint, and build results;
+- deployment/environment impact;
+- known limitations and unresolved decisions;
+- any approval needed from the owner.
+
+If a request conflicts with these rules or the approved product decisions, stop and explain the conflict rather than silently weakening financial integrity, security, or data isolation.
