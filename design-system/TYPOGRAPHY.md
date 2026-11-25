@@ -1,36 +1,30 @@
 # Typography
 
 ## Typeface
-Peyda is the primary UI family. The supplied package includes Regular 400, Medium 500, SemiBold 600, Bold 700, and ExtraBold 800. Use the real WOFF2 files; do not synthesize weights if the correct file exists.
+Peyda is the primary UI family. The supplied package includes Regular 400, Medium 500, SemiBold 600, Bold 700, and ExtraBold 800. Use the original WOFF2 files from assets/fonts/. Do not synthesize weights when the correct file is available and do not substitute a similarly named third-party build.
 
-## Font registration
-Place original files in assets/fonts/ and register them:
+## Next.js font integration
+For the planned Next.js application, prefer next/font/local so fonts are self-hosted, optimized, and included in the build. Example for a project using src/app/fonts.ts (adjust relative paths if the app uses a different directory layout):
 
-    @font-face {
-      font-family: "Peyda";
-      src: url("/assets/fonts/Peyda-Regular.woff2") format("woff2");
-      font-style: normal; font-weight: 400; font-display: swap;
-    }
-    @font-face {
-      font-family: "Peyda";
-      src: url("/assets/fonts/Peyda-Medium.woff2") format("woff2");
-      font-style: normal; font-weight: 500; font-display: swap;
-    }
-    @font-face {
-      font-family: "Peyda";
-      src: url("/assets/fonts/Peyda-SemiBold.woff2") format("woff2");
-      font-style: normal; font-weight: 600; font-display: swap;
-    }
-    @font-face {
-      font-family: "Peyda";
-      src: url("/assets/fonts/Peyda-Bold.woff2") format("woff2");
-      font-style: normal; font-weight: 700; font-display: swap;
-    }
-    @font-face {
-      font-family: "Peyda";
-      src: url("/assets/fonts/Peyda-ExtraBold.woff2") format("woff2");
-      font-style: normal; font-weight: 800; font-display: swap;
-    }
+    import localFont from "next/font/local";
+
+    export const peyda = localFont({
+      src: [
+        { path: "../../assets/fonts/Peyda-Regular.woff2", weight: "400", style: "normal" },
+        { path: "../../assets/fonts/Peyda-Medium.woff2", weight: "500", style: "normal" },
+        { path: "../../assets/fonts/Peyda-SemiBold.woff2", weight: "600", style: "normal" },
+        { path: "../../assets/fonts/Peyda-Bold.woff2", weight: "700", style: "normal" },
+        { path: "../../assets/fonts/Peyda-ExtraBold.woff2", weight: "800", style: "normal" }
+      ],
+      variable: "--font-peyda",
+      display: "swap",
+      fallback: ["Tahoma", "Arial", "sans-serif"]
+    });
+
+Apply the generated class or variable at the application root. The CSS font token should resolve to the Peyda variable with system fallbacks. Do not copy font files to a remote CDN.
+
+## Font-face alternative
+If the project is not using next/font/local, register the same local files with @font-face. Keep paths relative to the actual CSS file location; do not assume a /assets URL unless the files are in the framework's public directory.
 
 ## Type scale
 | Role | Size | Weight |
