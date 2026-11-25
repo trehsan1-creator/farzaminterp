@@ -109,7 +109,14 @@ async function prepare(
         response: apiError("AGENT_COMPANY_SCOPE_REQUIRED", "Set AGENT_COMPANY_ID when more than one active company exists.", 409, { request_id: requestId }),
       };
     }
-    companyId = data[0].id as string;
+    const selectedCompany = data[0];
+    if (!selectedCompany) {
+      return {
+        ok: false,
+        response: apiError("AGENT_COMPANY_SCOPE_REQUIRED", "An active company scope is required.", 409, { request_id: requestId }),
+      };
+    }
+    companyId = selectedCompany.id as string;
   }
 
   if (!companyId) {
