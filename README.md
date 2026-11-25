@@ -48,8 +48,10 @@ supabase db push             # applies supabase/migrations in order
 See [docs/STAGE00_REPORT.md](./docs/STAGE00_REPORT.md) for what is
 implemented and what remains, [docs/MIGRATIONS.md](./docs/MIGRATIONS.md)
 for schema review notes, [docs/IMPORT_PIPELINE.md](./docs/IMPORT_PIPELINE.md)
-for the idempotent import architecture, and
-[docs/API_V1.md](./docs/API_V1.md) for the versioned Muse API boundary.
+for the idempotent import architecture,
+[docs/API_V1.md](./docs/API_V1.md) for the versioned Muse API boundary, and
+[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for Vercel deployment
+(`vercel.json` is included).
 
 ## Repository map
 - `AGENTS.md` — repository-wide instructions for coding agents.
