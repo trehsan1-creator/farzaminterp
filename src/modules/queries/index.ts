@@ -38,7 +38,17 @@ export async function getCompany(): Promise<QueryResult<CompanyRow | null>> {
     .order("created_at")
     .limit(1)
     .maybeSingle();
-  if (error) return unavailable("error", error.message);
+  if (error) {
+    // Keep the dashboard's public state generic, but retain a safe server-side
+    // diagnostic so connection/RLS/schema failures are distinguishable.
+    console.error("[farzam-erp:database] companies.select failed", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    return unavailable("error", error.message);
+  }
   return { ok: true, unavailable: false, data };
 }
 
@@ -51,7 +61,15 @@ export async function listFiscalYears(companyId: string): Promise<QueryResult<Fi
     .select("*")
     .eq("company_id", companyId)
     .order("start_date", { ascending: false });
-  if (error) return unavailable("error", error.message);
+  if (error) {
+    console.error("[farzam-erp:database] fiscal_years.select failed", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    return unavailable("error", error.message);
+  }
   return { ok: true, unavailable: false, data: data ?? [] };
 }
 
