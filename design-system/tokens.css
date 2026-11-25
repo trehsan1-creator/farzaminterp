@@ -1,0 +1,86 @@
+/* Farzam ERP Design System v1.0 — canonical tokens */
+:root {
+  color-scheme: light;
+  --fz-brand-navy: #102333;
+  --fz-brand-blue: #4472F6;
+  --fz-brand-orange: #FF3F1F;
+  --fz-brand-purple: #3C2C7B;
+
+  --fz-bg: #F7F9FC;
+  --fz-surface: #FFFFFF;
+  --fz-surface-subtle: #F1F5F9;
+  --fz-border: #E5EAF0;
+  --fz-border-strong: #CBD5E1;
+
+  --fz-text: #102333;
+  --fz-text-secondary: #64748B;
+  --fz-text-muted: #94A3B8;
+  --fz-text-inverse: #FFFFFF;
+
+  --fz-success: #15803D;
+  --fz-success-bg: #F0FDF4;
+  --fz-warning: #B45309;
+  --fz-warning-bg: #FFFBEB;
+  --fz-danger: #B91C1C;
+  --fz-danger-bg: #FEF2F2;
+  --fz-info: #1D4ED8;
+  --fz-info-bg: #EFF6FF;
+  --fz-neutral: #64748B;
+  --fz-neutral-bg: #F1F5F9;
+
+  --fz-font-sans: "Peyda", Tahoma, Arial, sans-serif;
+  --fz-font-mono: "SFMono-Regular", Consolas, monospace;
+  --fz-text-xs: .75rem;
+  --fz-text-sm: .8125rem;
+  --fz-text-base: .875rem;
+  --fz-text-md: 1rem;
+  --fz-text-lg: 1.125rem;
+  --fz-text-xl: 1.25rem;
+  --fz-text-2xl: 1.5rem;
+  --fz-text-3xl: 1.875rem;
+  --fz-leading-tight: 1.35;
+  --fz-leading-normal: 1.7;
+
+  --fz-space-1: .25rem;
+  --fz-space-2: .5rem;
+  --fz-space-3: .75rem;
+  --fz-space-4: 1rem;
+  --fz-space-5: 1.25rem;
+  --fz-space-6: 1.5rem;
+  --fz-space-8: 2rem;
+  --fz-space-10: 2.5rem;
+  --fz-space-12: 3rem;
+  --fz-space-16: 4rem;
+
+  --fz-radius-sm: .375rem;
+  --fz-radius-md: .625rem;
+  --fz-radius-lg: .875rem;
+  --fz-radius-xl: 1rem;
+  --fz-radius-pill: 999px;
+  --fz-shadow-sm: 0 1px 2px rgb(16 35 51 / .05);
+  --fz-shadow-md: 0 4px 12px rgb(16 35 51 / .08);
+  --fz-shadow-lg: 0 12px 32px rgb(16 35 51 / .12);
+
+  --fz-content-max: 90rem;
+  --fz-sidebar-width: 16rem;
+  --fz-sidebar-collapsed-width: 4.5rem;
+  --fz-header-height: 4rem;
+  --fz-control-height: 2.75rem;
+  --fz-focus-ring: 0 0 0 3px rgb(68 114 246 / .24);
+  --fz-motion-fast: 120ms;
+  --fz-motion-base: 180ms;
+  --fz-motion-slow: 260ms;
+  --fz-ease-standard: cubic-bezier(.2, 0, 0, 1);
+}
+* { box-sizing: border-box; }
+html { font-family: var(--fz-font-sans); background: var(--fz-bg); color: var(--fz-text); text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--fz-bg); color: var(--fz-text); font-family: var(--fz-font-sans); font-size: var(--fz-text-base); line-height: var(--fz-leading-normal); }
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: none; box-shadow: var(--fz-focus-ring); }
+[dir="rtl"] { direction: rtl; }
+[dir="ltr"] { direction: ltr; }
+.fz-ltr { direction: ltr; unicode-bidi: isolate; text-align: left; }
+.fz-numeric { font-variant-numeric: tabular-nums lining-nums; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
