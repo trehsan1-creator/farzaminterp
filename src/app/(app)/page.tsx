@@ -8,7 +8,9 @@ import {
   Badge,
 } from "@/components/ui/states";
 import { resolveScope } from "@/modules/queries/scope";
-import { getDashboardCounts, listDocuments } from "@/modules/queries";
+import { getDashboardCounts, listDocuments, listImportBatches } from "@/modules/queries";
+import { buildDashboardVisuals } from "@/modules/analytics/dashboard";
+import { DashboardVisuals } from "@/components/dashboard/DashboardVisuals";
 import {
   displayDate,
   displayMoney,
@@ -68,16 +70,20 @@ export default async function DashboardPage({ searchParams }: Props) {
     );
   }
 
-  const [countsRes, documentsRes] = await Promise.all([
+  const [countsRes, documentsRes, batchesRes] = await Promise.all([
     getDashboardCounts(scope.scope),
-    listDocuments(scope.scope, { limit: 6 }),
+    listDocuments(scope.scope, { limit: 500 }),
+    listImportBatches(scope.scope),
   ]);
 
   const counts = countsRes.ok
     ? countsRes.data
     : { documents: 0, importBatches: 0, openIssues: 0, readyBatches: 0 };
-  const recentDocuments = documentsRes.ok ? documentsRes.data : [];
-  const hasDemoData = recentDocuments.some((doc) => doc.document_no?.startsWith("DEMO-"));
+  const analysisDocuments = documentsRes.ok ? documentsRes.data : [];
+  const recentDocuments = analysisDocuments.slice(0, 6);
+  const importBatches = batchesRes.ok ? batchesRes.data : [];
+  const dashboardVisuals = buildDashboardVisuals(analysisDocuments, importBatches);
+  const hasDemoData = analysisDocuments.some((doc) => doc.document_no?.startsWith("DEMO-"));
   const fyLabel = toFaDigits(scope.fiscalYear.label);
   const currencyLabel = scope.company.base_currency === "IRR" ? "ریال" : "تومان";
   const isEmpty =
@@ -118,7 +124,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         )}
       </section>
 
-      {!countsRes.ok || !documentsRes.ok ? (
+      {!countsRes.ok || !documentsRes.ok || !batchesRes.ok ? (
         <Alert tone="warning" title="بخشی از اطلاعات دریافت نشد">
           ارتباط با پایگاه داده برقرار است، اما دریافت یکی از بخش‌های داشبورد کامل نشد. صفحه را دوباره بارگذاری کنید.
         </Alert>
@@ -136,6 +142,14 @@ export default async function DashboardPage({ searchParams }: Props) {
         <Kpi label="خطاهای باز اعتبارسنجی" value={counts.openIssues} unit="مورد" note="نیازمند بررسی و تصمیم انسانی" tone="orange" />
         <Kpi label="آماده انتشار" value={counts.readyBatches} unit="دسته" note="پس از تکمیل کنترل‌ها و تأیید" tone="green" />
       </section>
+
+      <DashboardVisuals
+        data={dashboardVisuals}
+        documentsLoaded={analysisDocuments.length}
+        documentsTotal={counts.documents}
+        batchesLoaded={importBatches.length}
+        batchesTotal={counts.importBatches}
+      />
 
       <div className="fz-dashboard-lower">
         <section className="fz-dashboard-panel" aria-labelledby="recent-documents-title">
