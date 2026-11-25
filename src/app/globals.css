@@ -1557,3 +1557,15 @@ p { margin: 0; }
     flex: 0 0 4px;
   }
 }
+
+[dir="rtl"] .fz-sidebar {
+  visibility: hidden;
+}
+[dir="rtl"] .fz-sidebar[data-open="true"] {
+  visibility: visible;
+}
+@media (min-width: 1024px) {
+  [dir="rtl"] .fz-sidebar {
+    visibility: visible;
+  }
+}
