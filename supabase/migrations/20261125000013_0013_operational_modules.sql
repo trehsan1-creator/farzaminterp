@@ -432,6 +432,20 @@ begin
 end;
 $$;
 
+-- Explicit statements keep RLS coverage visible to migration review and CI.
+alter table public.products enable row level security;
+alter table public.warehouses enable row level security;
+alter table public.employees enable row level security;
+alter table public.payroll_runs enable row level security;
+alter table public.payroll_items enable row level security;
+alter table public.sales_invoice_lines enable row level security;
+alter table public.purchase_invoice_lines enable row level security;
+alter table public.bank_account_opening_balances enable row level security;
+alter table public.opening_balance_proposals enable row level security;
+alter table public.source_observations enable row level security;
+alter table public.management_questions enable row level security;
+alter table public.inventory_movements enable row level security;
+
 drop policy if exists products_insert on public.products;
 create policy products_insert on public.products for insert to authenticated
   with check (public.fz_is_company_member(company_id) and public.fz_has_role(company_id,array['owner','accountant','importer']::text[]));
