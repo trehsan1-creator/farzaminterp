@@ -146,13 +146,13 @@ export default async function ImportReviewPage({ searchParams }: Props) {
         title={`بازبینی دسته ${shortId(batch.id)}`}
         subtitle={`سال مالی ${fyLabel} — نسخه ${batch.pipeline_version}`}
         actions={
-          <Link href="/imports" className="fz-btn fz-btn-secondary">
+          <Link href={`/imports?fy=${scope.fiscalYear.id}`} className="fz-btn fz-btn-secondary">
             بازگشت به مانیتور
           </Link>
         }
       />
 
-      <div className="fz-filter-row" role="status">
+      <div className="fz-filter-row fz-review-status" role="status">
         <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         <Badge variant="neutral">مرحله: {stageLabel(batch.stage)}</Badge>
         {batch.error_summary ? (
@@ -164,7 +164,7 @@ export default async function ImportReviewPage({ searchParams }: Props) {
 
       <section aria-label="خط لوله این دسته" className="fz-card">
         <h2 className="fz-card-title">مراحل خط لوله</h2>
-        <ol className="fz-stepper" style={{ marginBlockStart: "var(--fz-space-3)" }}>
+        <ol className="fz-stepper fz-review-stepper">
           {PIPELINE_STAGE_ORDER.map((stage, i) => {
             const state = stageProgressState(stage, batch.status, batch.stage);
             return (
@@ -257,7 +257,7 @@ export default async function ImportReviewPage({ searchParams }: Props) {
               <dd className="fz-numeric">{toFaDigits(String(staging.length))}</dd>
             </div>
             <div>
-              <dt>مهمان باز</dt>
+              <dt>خطاهای باز</dt>
               <dd className="fz-numeric">
                 {toFaDigits(
                   String(batchIssues.filter((i) => i.severity === "error" && i.status === "open").length),
@@ -274,7 +274,7 @@ export default async function ImportReviewPage({ searchParams }: Props) {
         انتشار روی دسته منتشرشده، بدون ایجاد رکورد تکراری فقط «قبلاً منتشر شد» گزارش می‌کند.
       </Alert>
 
-      <div className="fz-page-actions">
+      <div className="fz-page-actions fz-review-actions">
         <button type="button" className="fz-btn fz-btn-primary" aria-disabled="true" disabled>
           درخواست تأیید برای انتشار
         </button>
@@ -282,12 +282,12 @@ export default async function ImportReviewPage({ searchParams }: Props) {
           انتشار مجوزدار
         </button>
         <span className="fz-table-hint">
-          این کنترل‌ها پس از راه‌انجری جریان تأیید و ورود کاربر فعال می‌شوند (مرحله بعدی).
+          این کنترل‌ها پس از راه‌اندازی جریان تأیید و ورود کاربران فعال می‌شوند (مرحله بعدی).
         </span>
       </div>
 
       <section aria-label="رکوردهای مرحله‌بندی">
-        <div className="fz-table-toolbar">
+        <div className="fz-table-toolbar fz-review-table-toolbar">
           <h2>رکوردهای مرحله‌بندی</h2>
           <span className="fz-table-hint">
             رکوردهای مرحله‌بندی هیچ‌گاه سند مالی ثبت‌شده نیستند
