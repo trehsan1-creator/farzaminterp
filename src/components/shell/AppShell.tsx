@@ -112,15 +112,25 @@ export function AppShell({ company, fiscalYears, dbConfigured, children }: AppSh
         onKeyDown={onKeyDown}
       >
         <div className="fz-sidebar-brand">
-          <div className="fz-sidebar-brand-mark">
-            <Image src="/brand/af-logo.svg" alt="نشان آتی فرزام" width={42} height={42} priority />
+          <div className="fz-sidebar-brand-lockup" aria-label="آتی فرزام">
+            <Image
+              src="/brand/af-logo.svg"
+              alt=""
+              width={36}
+              height={36}
+              className="fz-brand-symbol"
+              priority
+            />
+            <Image
+              src="/brand/wordmark-fa.svg"
+              alt="آتی فرزام"
+              width={116}
+              height={39}
+              className="fz-brand-wordmark"
+              priority
+            />
           </div>
-          <div className="fz-sidebar-brand-copy">
-            <span className="fz-brand-wordmark-frame">
-              <Image src="/brand/wordmark-fa.svg" alt="آتی فرزام" width={112} height={38} className="fz-brand-wordmark" priority />
-            </span>
-            <span className="fz-brand-caption">سامانه یکپارچه مالی · ERP</span>
-          </div>
+          <span className="fz-brand-caption">سامانه یکپارچه مالی · ERP</span>
         </div>
 
         <nav className="fz-nav" aria-label="منوی برنامه">
