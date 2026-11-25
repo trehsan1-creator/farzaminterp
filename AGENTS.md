@@ -103,7 +103,7 @@ For user-facing interfaces, read `design-system/README.md` and the relevant docu
 
 - All screens must be fully responsive and mobile-first.
 - Persian is the primary interface language and RTL must be structural.
-- Use the supplied official brand assets and Peyda font files when present.
+- Use the supplied official brand assets and original Peyda font files. Before implementing typography, verify the five actual WOFF2 files exist under assets/fonts/; README.md files are instructions, not font binaries. If the original assets.zip is available in the working environment, run scripts/import-brand-assets.ps1 and verify its hashes. Never silently substitute another font.
 - Reuse design tokens and shared components; do not create unrelated per-page visual styles.
 - Financial tables, amount inputs, Jalali date controls, approval flows, and PIP review components must follow the design-system contracts.
 - Meet the accessibility requirements and never communicate status by color alone.
