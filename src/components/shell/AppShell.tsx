@@ -9,7 +9,7 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { NAV_GROUPS, type NavItem } from "./nav-items";
 import { FiscalYearSelect } from "./FiscalYearSelect";
 
@@ -75,6 +75,8 @@ function NavIcon({ name }: { name: NavItem["icon"] }) {
 export function AppShell({ company, fiscalYears, dbConfigured, children }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const selectedFiscalYear = searchParams.get("fy");
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const handleNavClick = useCallback(() => setDrawerOpen(false), []);
@@ -125,6 +127,9 @@ export function AppShell({ company, fiscalYears, dbConfigured, children }: AppSh
               <ul className="fz-nav-list">
                 {group.items.map((item) => {
                   const active = !group.disabled && pathname === item.href;
+                  const href = selectedFiscalYear
+                    ? item.href + (item.href.includes("?") ? "&" : "?") + "fy=" + encodeURIComponent(selectedFiscalYear)
+                    : item.href;
                   if (group.disabled) {
                     return (
                       <li key={item.href}>
@@ -140,7 +145,7 @@ export function AppShell({ company, fiscalYears, dbConfigured, children }: AppSh
                   return (
                     <li key={item.href}>
                       <Link
-                        href={item.href}
+                        href={href}
                         className="fz-nav-link"
                         data-active={active ? "true" : "false"}
                         aria-current={active ? "page" : undefined}
